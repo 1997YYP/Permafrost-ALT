@@ -1,0 +1,90 @@
+clc;
+clear all;
+
+
+% 读取时间序列数据
+timeSeriesData = xlsread('G:\040 Permafrost Degradation\016 Consistency Analysis\1981-2021_Consistency Analysis.xlsx', 'NDVI Anomaly', 'BC236:BM236');
+
+% 绘制时间序列
+%figure;
+%plot(timeSeriesData);
+%title('Time Series Data');
+%xlabel('Time');
+%ylabel('ALT Anomaly');
+
+% 检查自相关性
+%figure;
+%subplot(2,1,1);
+%autocorr(timeSeriesData);
+%title('Autocorrelation Function (ACF)');
+
+%subplot(2,1,2);
+%parcorr(timeSeriesData);
+%title('Partial Autocorrelation Function (PACF)');
+
+% Ljung-Box 检验
+lags = [1, 5, 10];
+[h_lb, pValue_lb] = lbqtest(timeSeriesData, 'Lags', lags);
+
+% 打印Ljung-Box检验结果
+fprintf('Ljung-Box test results:\n');
+for i = 1:length(pValue_lb)
+    fprintf('Lag %d: p-value = %f\n', lags(i), pValue_lb(i));
+end
+
+% 检查同分布性
+%figure;
+%histogram(timeSeriesData);
+%title('Histogram of Time Series Data');
+
+% Kolmogorov-Smirnov 正态性检验
+[h_ks, p_ks] = kstest(timeSeriesData);
+fprintf('Kolmogorov-Smirnov test p-value: %f\n', p_ks);
+
+% Anderson-Darling 正态性检验
+[h_ad, p_ad] = adtest(timeSeriesData);
+fprintf('Anderson-Darling test p-value: %f\n', p_ad);
+
+% 检查平稳性
+% ADF 检验
+[h_adf, p_adf] = adftest(timeSeriesData);
+fprintf('ADF test p-value: %f\n', p_adf);
+
+% KPSS 检验
+[h_kpss, p_kpss] = kpsstest(timeSeriesData);
+fprintf('KPSS test p-value: %f\n', p_kpss);
+
+% 总结结果
+fprintf('\nSummary of Tests for IID:\n');
+% 自相关性
+if all(pValue_lb > 0.05)
+    fprintf('Ljung-Box test: No significant autocorrelation at all lags.\n');
+else
+    fprintf('Ljung-Box test: Significant autocorrelation detected.\n');
+end
+
+% 同分布性
+if p_ks > 0.05
+    fprintf('Kolmogorov-Smirnov test: Data appears to be normally distributed.\n');
+else
+    fprintf('Kolmogorov-Smirnov test: Data does not appear to be normally distributed.\n');
+end
+
+if p_ad > 0.05
+    fprintf('Anderson-Darling test: Data appears to be normally distributed.\n');
+else
+    fprintf('Anderson-Darling test: Data does not appear to be normally distributed.\n');
+end
+
+% 平稳性
+if p_adf < 0.05
+    fprintf('ADF test: Time series is stationary.\n');
+else
+    fprintf('ADF test: Time series is not stationary.\n');
+end
+
+if p_kpss > 0.05
+    fprintf('KPSS test: Time series is stationary.\n');
+else
+    fprintf('KPSS test: Time series is not stationary.\n');
+end
